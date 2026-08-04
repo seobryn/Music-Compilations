@@ -71,13 +71,28 @@ INPUT="$1"
 OUTPUT="$2"
 TITLE="$3"
 ALBUM="$4"
-TRACK="$5"
+TRACK="${5:-}"
 YEAR="${6:-$(date +%Y)}"
 GENRE="${7:-Instrumental Progressive Metal}"
 ARTIST="Seobryn Music"
 
 OUT_DIR="$(dirname "$OUTPUT")"
 mkdir -p "$OUT_DIR"
+
+# Build metadata args. Skip the track frame if empty (used by Sin Album tracks
+# which have no track number per AGENTS.md §6).
+TAG_ARGS=(
+  -metadata title="$TITLE"
+  -metadata artist="$ARTIST"
+  -metadata album="$ALBUM"
+  -metadata date="$YEAR"
+  -metadata genre="$GENRE"
+  -metadata encoded_by="$ARTIST"
+  -metadata comment="Instrumental, no vocals"
+)
+if [ -n "$TRACK" ]; then
+  TAG_ARGS=( -metadata track="$TRACK" "${TAG_ARGS[@]}" )
+fi
 
 # Paso 1: ffmpeg — strip ALL metadata with -map_metadata -1, write our tags.
 # -c:a copy preserva el bitstream (no re-encode).
@@ -88,14 +103,7 @@ ffmpeg -y -hide_banner -loglevel error \
   -vn \
   -c:a copy \
   -map_metadata -1 \
-  -metadata title="$TITLE" \
-  -metadata artist="$ARTIST" \
-  -metadata album="$ALBUM" \
-  -metadata track="$TRACK" \
-  -metadata date="$YEAR" \
-  -metadata genre="$GENRE" \
-  -metadata encoded_by="$ARTIST" \
-  -metadata comment="Instrumental, no vocals" \
+  "${TAG_ARGS[@]}" \
   -write_id3v2 1 \
   -id3v2_version 3 \
   "$OUTPUT"
