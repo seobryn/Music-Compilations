@@ -136,15 +136,38 @@ Instrumental, no vocals. In the spirit of Nightwish's cinematic orchestration.
 
 | Álbum | Estado | Inspiración | Tracks |
 |---|---|---|---|
-| **Universal Synergy** | ✅ Completo y publicado | (por confirmar banda) | 4 — orden libre, sin prefijos |
-| **Whispers Before the Storm** | 🟡 En progreso (2/4) | **Mago de Oz** | 2 numerados (`1. From the Hollow to the Flame`, `2. The Quiet That Breaks`) — faltan 2 |
+| **Universal Synergy** | ✅ Completo y publicado | (por confirmar banda) | 4 numerados |
+| **Whispers Before the Storm** | 🟡 En progreso (2 publicados + 1 en desarrollo) | **Mago de Oz** | 2 numerados (`1. From the Hollow to the Flame`, `2. The Quiet That Breaks`); track 3 en desarrollo |
 | **Sin Album** | 📝 Papeleta | — | 1 (`Dissonance Engine.mp3`) |
 
 Todos los títulos existentes están en **inglés**.
 
 ---
 
-## 10. Tareas pendientes de definir con el autor
+## 10. Tracks en desarrollo
 
-- [ ] **Whispers Before the Storm**: definir emoción/instrumentación de las 2 canciones restantes para alinear con la esencia de Mago de Oz.
+### 3. What the Heart Whispered — *Whispers Before the Storm*
+- **Emociones:** enamorado (intimidad, calidez, esperanza, anhelo).
+- **Notas creativas:** silencios deliberados, rubato, cambios de tempo; progresivo con tintes folk-metal.
+- **Archivo temporal esperado:** `cancion_3.mp3` (renombrar a `3. What the Heart Whispered.mp3` al agregarlo).
+- **Prompt Suno (optimizado, en inglés):**
+  ```
+  Progressive rock with folk-metal influences, mid-tempo with rubato and
+  dynamic tempo shifts. Deep prominent bass anchoring the low end, expressive
+  drums with a breakdown solo and varied fills, layered violins weaving the
+  melodic lead through Celtic-flavored acoustic passages and electric
+  counterplay. Conveys the tender warmth of being in love — intimate, hopeful,
+  longing — built with deliberate silences and dramatic rests that let emotion
+  breathe. Tempo flows with the feeling: slow and intimate in the verses,
+  swelling forward in the choruses, suspended in the pauses between.
+  Instrumental, no vocals. In the spirit of Mago de Oz's folk-metal
+  storytelling and progressive rock's dynamic contrast.
+  ```
+
+---
+
+## 11. Tareas pendientes de definir con el autor
+
+- [ ] **Whispers Before the Storm** — track 4: definir emoción y dirección creativa (cierre del álbum, "la tormenta").
+- [ ] **Whispers Before the Storm** — track 3: pendiente de recibir el MP3 para renombrar `cancion_3.mp3` → `3. What the Heart Whispered.mp3`.
 - [ ] **Universal Synergy**: confirmar la banda de inspiración (no declarada aún).
