@@ -140,38 +140,14 @@ Instrumental, no vocals. In the spirit of Nightwish's cinematic orchestration.
 | Álbum | Estado | Inspiración | Tracks |
 |---|---|---|---|
 | **Universal Synergy** | ✅ Completo y publicado | (por confirmar banda) | 4 numerados |
-| **Whispers Before the Storm** | 🟡 En progreso (3 publicados + 1 en desarrollo) | **Mago de Oz** | 3 numerados; track 4 en desarrollo (`4. Against the Breaking Storm`) |
+| **Whispers Before the Storm** | ✅ Completo y publicado | **Mago de Oz** | 4 numerados (`1. From the Hollow to the Flame`, `2. The Quiet That Breaks`, `3. What the Heart Whispered`, `4. Against the Breaking Storm`) |
 | **Sin Album** | 📝 Papeleta | — | 1 (`Dissonance Engine.mp3`) |
 
 Todos los títulos existentes están en **inglés**.
 
 ---
 
-## 10. Tracks en desarrollo
-
-### 4. Against the Breaking Storm — *Whispers Before the Storm*
-- **Emoción:** heroic defiance — el amor inspira la batalla. La tormenta es la lucha; el amor es el combustible.
-- **Notas creativas:** progresivo puro (Tool / Dream Theater — compases irregulares, tensión ambiental, menos folk) sobre la narrativa épica de Mago de Oz. Builds de apertura tensa → clímax explosivo con orquesta completa + solo de batería → outro cansado pero resuelto.
-- **Archivo temporal esperado:** `cancion_4.mp3` (renombrar a `4. Against the Breaking Storm.mp3` al agregarlo).
-- **Prompt Suno (optimizado, en inglés):**
-  ```
-  Progressive rock with progressive metal edge, mid-to-fast tempo with
-  driving rhythmic shifts and complex time signatures. Deep prominent bass
-  locking the foundation, expressive drums with polyrhythms and a powerful
-  climactic solo, layered orchestral strings (violin and cello lead)
-  weaving tension and release. Conveys heroic defiance — the storm is a
-  battle, and love is what fuels the fight. Builds from a determined,
-  restrained opening into a triumphant, explosive climax with full
-  orchestral lift, then quiets into a weary but resolved outro. Tempo
-  pushes forward with urgency in the verses, then unleashes in the
-  climactic section. Instrumental, no vocals. In the spirit of Mago de
-  Oz's epic narrative arc and Tool's rhythmic complexity and atmospheric
-  tension.
-  ```
-
----
-
-## 11. Workflow de nuevos tracks
+## 10. Workflow de nuevos tracks
 
 Cuando el autor traiga un nuevo MP3 (de Suno o DAW) al álbum, el proceso automatizado es:
 
@@ -193,7 +169,7 @@ Cuando el autor traiga un nuevo MP3 (de Suno o DAW) al álbum, el proceso automa
    - Elimina el frame `TSSE` (que ffmpeg añade automáticamente con su número de versión).
    - Audita al final que ningún tag contenga rastros de AI/Suno/encoders (sale con código 2 si detecta algo).
    - Usa `-c:a copy` — cero pérdida de calidad, no re-encodifica.
-3. **Actualizar `AGENTS.md`** — añadir el track al estado en §9 (con su número y género final), quitar la línea de "pendiente de MP3" en §12 si aplica.
+3. **Actualizar `AGENTS.md`** — añadir el track al estado en §9 (con su número y género final), quitar la línea de "pendiente de MP3" en §11 si aplica.
 4. **Commit** — un commit por canción agregada con mensaje `feat: add <N>. <Título>`.
 
 **Cuándo usar el script:**
@@ -213,7 +189,6 @@ Cuando el autor traiga un nuevo MP3 (de Suno o DAW) al álbum, el proceso automa
 
 ---
 
-## 12. Tareas pendientes de definir con el autor
+## 11. Tareas pendientes de definir con el autor
 
-- [ ] **Whispers Before the Storm** — track 4: pendiente de recibir el MP3 para renombrar `cancion_4.mp3` → `4. Against the Breaking Storm.mp3` y ejecutarle `clean-mp3.sh`.
 - [ ] **Universal Synergy**: confirmar la banda de inspiración (no declarada aún).
