@@ -53,8 +53,8 @@ Music-Compilations/
 ├── Banner.png                     ← banner principal
 ├── scripts/
 │   └── clean-mp3.sh               ← limpieza + taggeo de MP3 (ffmpeg)
-└── <Género>/                      ← una carpeta por género (ej. Symphonic Metal)
-    ├── <Album>/                   ← álbum inspirado en una banda
+└── Seobryn Music/                 ← root de todas las canciones (no organiza por género)
+    ├── <Album>/                   ← cada álbum, un folder directo (sin género intermedio)
     │   ├── <track>.mp3
     │   ├── <track>.mp3
     │   └── <portada>.{png|jpg}    ← una sola pieza de arte por álbum
@@ -63,7 +63,8 @@ Music-Compilations/
 ```
 
 **Reglas:**
-- `Sin Album` es la papeleta de canciones independientes que expresan una emoción puntual. Existe dentro del género al que más se acerquen estilísticamente. Es **plano**: sin subcarpetas, sin numeración.
+- La organización es **por álbum**, no por género. Cada álbum vive directamente bajo `Seobryn Music/`. El género se declara en los tags ID3 y en `AGENTS.md §9`, no en la jerarquía de carpetas.
+- `Sin Album` es la papeleta de canciones independientes que expresan una emoción puntual. Es **plano**: sin subcarpetas, sin numeración.
 - Cada álbum guarda **una sola portada** (mismo nombre o nombre descriptivo) junto a sus tracks.
 - Los archivos pesados (`.mp3`, portadas) **sí van al repo** — el `.gitignore` actual no los excluye.
 - El formato de exportación de audio es **MP3** (lo gestiona generalmente Suno AI). Si en el futuro se usa otro formato, añadirlo aquí.
@@ -168,7 +169,7 @@ Cuando el autor traiga un nuevo MP3 (de Suno o DAW) al álbum, el proceso automa
    - Elimina el frame `TSSE` (que ffmpeg añade automáticamente con su número de versión).
    - Audita al final que ningún tag contenga rastros de AI/Suno/encoders (sale con código 2 si detecta algo).
    - Usa `-c:a copy` — cero pérdida de calidad, no re-encodifica.
-3. **Actualizar `AGENTS.md`** — mover el track de "en desarrollo" a "publicado" en §9, fijar el género final en §10.
+3. **Actualizar `AGENTS.md`** — añadir el track al estado en §9 (con su número y género final), quitar la línea de "pendiente de MP3" en §11 si aplica.
 4. **Commit** — un commit por canción agregada con mensaje `feat: add <N>. <Título>`.
 
 **Cuándo usar el script:**

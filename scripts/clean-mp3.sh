@@ -14,17 +14,17 @@
 #
 # Argumentos:
 #   input   — archivo mp3 de entrada (ej. cancion_3.mp3)
-#   output  — ruta final (ej. "Symphonic Metal/Whispers Before the Storm/3. What the Heart Whispered.mp3")
+#   output  — ruta final (ej. "Seobryn Music/Whispers Before the Storm/3. What the Heart Whispered.mp3")
 #   title   — título del track (en inglés)
 #   album   — álbum al que pertenece
-#   track   — número del track (sin cero-padding, ej. "3" o "3/4")
+#   track   — número del track (sin cero-padding, ej. "3" o "3/4"). Pasar vacío "" para Sin Album (sin track).
 #   year    — año (opcional, default = año actual)
 #   genre   — género (opcional, default = "Instrumental Progressive Metal")
 #
 # Ejemplo:
 #   ./scripts/clean-mp3.sh \
-#     "Symphonic Metal/Whispers Before the Storm/cancion_3.mp3" \
-#     "Symphonic Metal/Whispers Before the Storm/3. What the Heart Whispered.mp3" \
+#     "Seobryn Music/Whispers Before the Storm/cancion_3.mp3" \
+#     "Seobryn Music/Whispers Before the Storm/3. What the Heart Whispered.mp3" \
 #     "What the Heart Whispered" \
 #     "Whispers Before the Storm" \
 #     "3" \
