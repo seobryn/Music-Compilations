@@ -177,9 +177,16 @@ Cuando el autor traiga un nuevo MP3 (de Suno o DAW) al álbum, el proceso automa
 - SIEMPRE antes de subir un track a SoundCloud u otra plataforma, para dejar la firma de Seobryn Music en los tags.
 
 **Requisitos del sistema:**
-- `ffmpeg` instalado (`brew install ffmpeg`).
+- `ffmpeg` instalado (`brew install ffmpeg` en macOS, `apt install ffmpeg` en Linux).
 - `eyeD3` instalado (`pip3 install --user eyeD3`). El script busca automáticamente en `~/Library/Python/3.9/bin/`, `~/Library/Python/3.13/bin/` y `~/.local/bin/`.
 - `python3` (incluido en macOS y Linux por defecto).
+- `xattr` (macOS) o `setfattr` (Linux, paquete `attr`). Si ninguno está disponible, el paso 3.5 se omite silenciosamente.
+
+**Compatibilidad cross-platform:**
+- ✅ **macOS** — pipeline completo (ID3 + raw bytes + macOS xattr).
+- ✅ **Linux** — pipeline completo (ID3 + raw bytes + ext4 xattrs con `setfattr`).
+- ⚠️ **Windows** — usar Git Bash o WSL. NTFS Alternate Data Streams (`Zone.Identifier`) no se limpian automáticamente; desde PowerShell nativo: `Get-Item <file> -Stream * | Remove-Item`.
+- ✅ El script es bash puro portable — funciona sin cambios en cualquier Unix-like.
 
 **Género por defecto si no se pasa:** `Instrumental Progressive Metal` (ajustar por álbum).
 

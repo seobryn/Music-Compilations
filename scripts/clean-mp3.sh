@@ -6,7 +6,8 @@
 #   2. eyeD3    — elimina el frame TSSE (encoder=Lavf<version>) que ffmpeg añade
 #   3. python   — blanquea el campo "Lavf"/"LAME" en el header Xing VBR del MP3
 #                 (no está en los tags ID3, está en el bitstream del audio)
-#   4. audit    — comprueba tanto los tags ID3 como los bytes crudos del archivo
+#   3.5 xattr   — borra extended attributes (macOS kMDItemWhereFroms, Linux ext4)
+#   4. audit    — comprueba tags ID3, bytes crudos del archivo y xattrs
 #
 # Uso:
 #   ./scripts/clean-mp3.sh <input> <output> <title> <album> <track> [year] [genre]
@@ -19,6 +20,14 @@
 #   track   — número del track (sin cero-padding, ej. "3" o "3/4"). Pasar vacío "" para Sin Album (sin track).
 #   year    — año (opcional, default = año actual)
 #   genre   — género (opcional, default = "Instrumental Progressive Metal")
+#
+# Cross-platform:
+#   - macOS: usa `xattr -c` para limpiar Where Froms.
+#   - Linux: usa `setfattr` para ext4 xattrs (raro en MP3 pero soportado).
+#   - Windows: ejecutar en Git Bash o WSL. NTFS ADS no se limpia automáticamente;
+#     desde PowerShell nativo: `Get-Item <file> -Stream * | Remove-Item`.
+#   - Funciona en macOS, Linux y Windows (Git Bash/WSL). Cualquier comando
+#     específico de plataforma se omite silenciosamente si no está disponible.
 #
 # Ejemplo:
 #   ./scripts/clean-mp3.sh \
@@ -128,29 +137,68 @@ eyeD3 -Q --remove-frame TSSE "$OUTPUT" >/dev/null
 # "Where from" o similar. Lo blanqueamos a 9 espacios.
 python3 "$SCRIPT_DIR/strip-xing-encoder.py" "$OUTPUT" >/dev/null
 
-# ─── Paso 3.5: strip macOS extended attributes (xattrs) ───────────────────
-# Cuando un MP3 se descarga (de Suno, navegador, etc.), macOS guarda la URL
-# de origen en `com.apple.metadata:kMDItemWhereFroms`. Finder lo muestra
-# en "Show Info → More Info" como **Where From**. Si queda, revela el origen
-# (ej. "https://suno.com/"). `xattr -c` borra TODOS los xattrs del archivo.
-# Git no trackea xattrs, así que esta limpieza es local-only.
+# ─── Paso 3.5: strip extended attributes (cross-platform) ──────────────────
+# macOS: cuando un MP3 se descarga (de Suno, navegador, etc.), Finder guarda
+#   la URL en `com.apple.metadata:kMDItemWhereFroms` → "Where From" en
+#   "Show Info → More Info". Si queda, revela el origen (ej. "https://suno.com/").
+# Linux: ext4 xattrs existen pero raramente se usan para MP3. `setfattr` puede
+#   borrarlos si aparecen.
+# Windows: NTFS Alternate Data Streams (`Zone.Identifier` añadido en descargas)
+#   no es accesible vía shell estándar. Si transferís a Windows, ejecutá:
+#     powershell -Command "Get-Item <file> -Stream * | Remove-Item"
+# Git no trackea xattrs/ADS, así que esta limpieza es local-only.
 if command -v xattr >/dev/null 2>&1; then
+  # macOS / BSD xattr
   xattr -c "$OUTPUT" 2>/dev/null || true
+elif command -v setfattr >/dev/null 2>&1; then
+  # Linux ext4 xattr — borra user.* namespace
+  setfattr -h user.origin 2>/dev/null || true
+  # setfattr no tiene "borrar todos", así que borramos namespaces comunes:
+  for ns in user.com.apple.metadata:kMDItemWhereFroms \
+            user.com.apple.quarantine \
+            user.com.apple.metadata:_kMDItemUserTags \
+            user.xdg.origin.url; do
+    setfattr -x "$ns" "$OUTPUT" 2>/dev/null || true
+  done
 fi
 
 # ─── Paso 4: auditoría final integral ───────────────────────────────────────
-# Comprueba tres cosas: (a) tags ID3, (b) bytes crudos del archivo,
-# (c) extended attributes macOS (xattr "Where Froms").
+# Comprueba tres cosas:
+# (a) Tags ID3 (ffprobe)
+# (b) Bytes crudos del archivo (Python): LAME, Lavf, libav, ffmpeg, suno,
+#     AI como acronym (palabra completa "Artificial" o "Generated" o "AI "
+#     seguido de mayúscula, NO substring de palabra normal)
+# (c) xattr macOS kMDItemWhereFroms (si xattr está disponible)
 ID3_LEAKS=$(ffprobe -v error -show_entries format_tags -of default=noprint_wrappers=1 "$OUTPUT" 2>&1 \
   | grep -iE "suno|ai[^a-z]|artificial|generated|encoder|lavf|ffmpeg|libav|tsse" || true)
 RAW_LEAKS=$(python3 -c "
 import sys
+import re
 with open(sys.argv[1], 'rb') as f:
     data = f.read()
-for needle in (b'Lavf', b'LAME', b'libav'):
+# Buscar fingerprints reales (no coincidencias estadísticas en el bitstream).
+# 'LAME' o 'Lavf' como substring son fingerprints válidos (longitud 4-9).
+# 'AI ' seguido de mayúscula = AI acrónimo. 'FFmpeg'/'ffmpeg' = fingerprint.
+leaks = []
+for needle, desc in [
+    (b'LAME', 'LAME tag'),
+    (b'Lavf', 'ffmpeg Lavf'),
+    (b'libav', 'libav'),
+    (b'ffmpeg', 'ffmpeg'),
+    (b'libavformat', 'libavformat'),
+]:
     if needle in data:
-        print(f'RAW_LEAK: {needle.decode()}')
-        sys.exit(0)
+        leaks.append(f'{desc} ({needle.decode()})')
+# 'Suno' como palabra completa (mayúscula + espacio/fin/puntuación)
+suno_matches = list(re.finditer(rb'Suno(?![a-z])', data))
+if suno_matches:
+    leaks.append(f'Suno ({len(suno_matches)} matches)')
+# 'AI ' como acrónimo (mayúscula + mayúscula después, ej 'AI Art', 'AI Gen')
+ai_matches = list(re.finditer(rb'\\bAI [A-Z]', data))
+if ai_matches:
+    leaks.append(f'AI acronym ({len(ai_matches)} matches)')
+if leaks:
+    print('RAW_LEAK: ' + '; '.join(leaks))
 sys.exit(0)
 " "$OUTPUT" 2>&1 || true)
 XATTR_LEAKS=""
