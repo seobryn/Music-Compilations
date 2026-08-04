@@ -128,10 +128,19 @@ eyeD3 -Q --remove-frame TSSE "$OUTPUT" >/dev/null
 # "Where from" o similar. Lo blanqueamos a 9 espacios.
 python3 "$SCRIPT_DIR/strip-xing-encoder.py" "$OUTPUT" >/dev/null
 
+# ─── Paso 3.5: strip macOS extended attributes (xattrs) ───────────────────
+# Cuando un MP3 se descarga (de Suno, navegador, etc.), macOS guarda la URL
+# de origen en `com.apple.metadata:kMDItemWhereFroms`. Finder lo muestra
+# en "Show Info → More Info" como **Where From**. Si queda, revela el origen
+# (ej. "https://suno.com/"). `xattr -c` borra TODOS los xattrs del archivo.
+# Git no trackea xattrs, así que esta limpieza es local-only.
+if command -v xattr >/dev/null 2>&1; then
+  xattr -c "$OUTPUT" 2>/dev/null || true
+fi
+
 # ─── Paso 4: auditoría final integral ───────────────────────────────────────
-# Comprueba dos cosas: (a) tags ID3, (b) bytes crudos del archivo.
-# (a) Tags ID3: ni "suno", "AI", "encoder", "Lavf", "ffmpeg", etc.
-# (b) Raw bytes: ni "Lavf" ni "LAME" en ningún punto del archivo.
+# Comprueba tres cosas: (a) tags ID3, (b) bytes crudos del archivo,
+# (c) extended attributes macOS (xattr "Where Froms").
 ID3_LEAKS=$(ffprobe -v error -show_entries format_tags -of default=noprint_wrappers=1 "$OUTPUT" 2>&1 \
   | grep -iE "suno|ai[^a-z]|artificial|generated|encoder|lavf|ffmpeg|libav|tsse" || true)
 RAW_LEAKS=$(python3 -c "
@@ -144,12 +153,18 @@ for needle in (b'Lavf', b'LAME', b'libav'):
         sys.exit(0)
 sys.exit(0)
 " "$OUTPUT" 2>&1 || true)
+XATTR_LEAKS=""
+if command -v xattr >/dev/null 2>&1; then
+  WF=$(xattr -p com.apple.metadata:kMDItemWhereFroms "$OUTPUT" 2>/dev/null || true)
+  [ -n "$WF" ] && XATTR_LEAKS="XATTR_LEAK: kMDItemWhereFroms = $WF"
+fi
 
-if [ -n "$ID3_LEAKS" ] || [ -n "$RAW_LEAKS" ]; then
+if [ -n "$ID3_LEAKS" ] || [ -n "$RAW_LEAKS" ] || [ -n "$XATTR_LEAKS" ]; then
   echo "✗ Auditoría final: rastro de AI/Suno/encoder detectado." >&2
-  [ -n "$ID3_LEAKS" ]  && echo "  ID3 tags:" >&2 && echo "$ID3_LEAKS" >&2
-  [ -n "$RAW_LEAKS" ]  && echo "  Raw bytes:" >&2 && echo "$RAW_LEAKS" >&2
+  [ -n "$ID3_LEAKS" ]    && echo "  ID3 tags:"    >&2 && echo "$ID3_LEAKS"    >&2
+  [ -n "$RAW_LEAKS" ]    && echo "  Raw bytes:"   >&2 && echo "$RAW_LEAKS"    >&2
+  [ -n "$XATTR_LEAKS" ]  && echo "  macOS xattr:" >&2 && echo "$XATTR_LEAKS"  >&2
   exit 2
 fi
 
-echo "✓ $OUTPUT (auditado: sin rastros de AI/Suno/encoders, ID3 + raw bytes)"
+echo "✓ $OUTPUT (auditado: sin rastros de AI/Suno/encoders, ID3 + raw bytes + xattrs)"

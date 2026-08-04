@@ -163,11 +163,12 @@ Cuando el autor traiga un nuevo MP3 (de Suno o DAW) al álbum, el proceso automa
      "2026" \
      "<Género>"
    ```
-   El script ejecuta un pipeline de 4 pasos para garantizar cero rastros:
+   El script ejecuta un pipeline de 5 pasos para garantizar cero rastros:
    1. **ffmpeg** — strip ALL ID3 metadata con `-map_metadata -1`, escribe tags propios (`artist=Seobryn Music`, `title`, `album`, `track`, `date`, `genre`, `encoded_by`, `comment="Instrumental, no vocals"`). `-c:a copy` preserva el bitstream.
    2. **eyeD3** — elimina el frame `TSSE` (encoder=Lavf<version>) que ffmpeg añade automáticamente.
    3. **Python (`strip-xing-encoder.py`)** — blanquea el campo "Lavf"/"LAME" en dos lugares del bitstream: la extensión LAME del header Xing al inicio, y el LAME Tag al final del archivo (para VBR seek). Reemplaza 9 bytes por 9 espacios.
-   4. **Auditoría integral** — sale con código 2 si queda cualquier rastro. Comprueba dos cosas: tags ID3 (ffprobe) Y bytes crudos del archivo (Python: `LAME`, `Lavf`, `libav`).
+   3.5. **`xattr -c`** — borra los extended attributes macOS. Finder guarda la URL de origen del archivo (p. ej. `https://suno.com/`) en `com.apple.metadata:kMDItemWhereFroms`, que aparece como **"Where From"** en "Show Info → More Info". Sin esto, Finder revela el origen aunque los tags ID3 estén limpios.
+   4. **Auditoría integral** — sale con código 2 si queda cualquier rastro. Comprueba tres cosas: (a) tags ID3 (ffprobe), (b) bytes crudos del archivo (Python: `LAME`, `Lavf`, `libav`), (c) xattr `kMDItemWhereFroms`.
 3. **Actualizar `AGENTS.md`** — añadir el track al estado en §9 (con su número y género final), quitar la línea de "pendiente de MP3" en §11 si aplica.
 4. **Commit** — un commit por canción agregada con mensaje `feat: add <N>. <Título>`.
 
@@ -186,6 +187,7 @@ Cuando el autor traiga un nuevo MP3 (de Suno o DAW) al álbum, el proceso automa
 - ❌ "Suno", "AI", "artificial", "generated"
 - ❌ "Lavf", "ffmpeg", "libav", "TSSE", "encoder"
 - ❌ "LAME", "LAME3.100" (cualquier firma del encoder, en tags ID3 o bytes crudos)
+- ❌ URL "Where From" de macOS en `com.apple.metadata:kMDItemWhereFroms` (Finder "Show Info → More Info")
 - ❌ Cualquier rastro del proceso o de la herramienta generadora.
 
 ---
